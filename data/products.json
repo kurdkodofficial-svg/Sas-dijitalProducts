@@ -1,0 +1,50 @@
+[
+  {
+    "id": "prod-kurd-market-hub",
+    "titleKu": "پلاتفۆرمی Kurd Market Hub – بازاڕی کوردستان",
+    "titleEn": "Kurd Market Hub – Kurdistan Marketplace & Business Directory",
+    "descriptionKu": "پلاتفۆرمێکی ئۆنلاینی مۆدێرن بۆ دۆزینەوە و ناساندنی خاوەنکار، فرۆشگا و پیشە جیاوازەکانی کوردستان لە یەک شوێندا.",
+    "descriptionEn": "A modern digital marketplace and business directory platform connecting local enterprises, shops, and professionals across Kurdistan.",
+    "category": "websites",
+    "price": 0,
+    "currency": "USD",
+    "isFree": true,
+    "fileType": "Web Platform (وێبسایت و پلاتفۆرم)",
+    "fileSize": "Cloud Live",
+    "rating": 5,
+    "reviewsCount": 14,
+    "downloadUrl": "",
+    "purchaseUrl": "https://kurd-market-hub.base44.app/",
+    "demoUrl": "https://kurd-market-hub.base44.app/",
+    "imageUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
+    "tags": [
+      "Kurd Market Hub",
+      "Marketplace",
+      "پلاتفۆرم",
+      "وێبسایت",
+      "بازاڕی کوردستان",
+      "Web App"
+    ],
+    "features": [
+      "پلاتفۆرمێکی ئۆنلاین بۆ دۆزینەوە و ناساندنی خاوەنکار و پیشە جیاوازەکانی کوردستان",
+      "پۆلێنکردنی وردی کایە بازرگانییەکان و بەستەری ڕاستەوخۆ",
+      "کارکردنی خێرا لەسەر هەموو جۆرە مۆبایل و شاشەیەکی کۆمپیوتەر",
+      "دەستڕاگەیشتنی ڕاستەوخۆ و بێبەرامبەر بە پلاتفۆرمەکە"
+    ],
+    "seoKeywords": [
+      "kurd market hub",
+      "بازاڕی کوردستان",
+      "پلاتفۆرمی کوردستان",
+      "kurdistan directory",
+      "kurdish marketplace"
+    ],
+    "createdAt": "2026-11-05T13:04:00.000Z",
+    "featured": true,
+    "progressPercent": 92,
+    "targetDeadline": "2026-12-31",
+    "projectStatus": "live",
+    "milestonesTotal": 12,
+    "milestonesCompleted": 11,
+    "clientOrHoldingName": "Kurd Market Holding"
+  }
+]

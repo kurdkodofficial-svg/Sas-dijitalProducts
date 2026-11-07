@@ -1,0 +1,6 @@
+{
+  "name": "Sas-dijitalProducts",
+  "description": "پلاتفۆرمی Sas-dijitalProducts بۆ نیشاندان، بەڕێوەبردن و بڵاوکردنەوەی بەرهەمە دیجیتاڵییەکان لە گووگڵ لەگەڵ دروستکەری وێنەی هۆشمەندی ستۆدیۆ بە کوالیتی 1K, 2K, 4K",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
