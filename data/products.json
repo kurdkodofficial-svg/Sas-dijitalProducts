@@ -18,7 +18,7 @@
     "downloadUrl": "",
     "purchaseUrl": "https://kurdkodofficial-svg.github.io/Sas4ERP/",
     "demoUrl": "https://kurdkodofficial-svg.github.io/Sas4ERP/",
-    "imageUrl": "/images/sas4erp-holding-dashboard.jpg",
+    "imageUrl": "./images/sas4erp-holding-dashboard.jpg",
     "tags": [
       "SAS4ERP",
       "Holding ERP",

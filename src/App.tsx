@@ -36,11 +36,32 @@ import { ProductModal } from './components/ProductModal';
 import { ProductEditorModal } from './components/ProductEditorModal';
 import { AiImageStudioModal } from './components/AiImageStudioModal';
 import { GoogleSeoHubModal } from './components/GoogleSeoHubModal';
+import bundledProducts from '../data/products.json';
+
+const LOCAL_STORAGE_KEY = 'sas_dijital_products_v1';
+const INITIAL_BASE_URL =
+  typeof window !== 'undefined'
+    ? new URL('./', window.location.href).href
+    : '';
+
+const resolveAssetUrls = (list: DigitalProduct[]): DigitalProduct[] =>
+  list.map((p) => {
+    if (
+      p.imageUrl &&
+      (p.imageUrl.startsWith('./images/') || p.imageUrl.startsWith('/images/')) &&
+      INITIAL_BASE_URL
+    ) {
+      const cleanRel = p.imageUrl.replace(/^\.?\//, '');
+      return { ...p, imageUrl: new URL(cleanRel, INITIAL_BASE_URL).href };
+    }
+    return p;
+  });
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('ku');
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isBackendAvailable, setIsBackendAvailable] = useState(true);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [searchQuery, setSearchQuery] = useState('');
@@ -156,17 +177,37 @@ export default function App() {
     document.documentElement.dir = language === 'en' ? 'ltr' : 'rtl';
   }, [language]);
 
-  // Load products from server
+  // Load products from Node server, with automatic fallback for GitHub Pages / static hosts
   const loadProducts = async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/products');
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || !contentType.includes('application/json')) {
+        throw new Error('Static host detected (no Node API)');
+      }
       const data = await res.json();
       if (data.success && Array.isArray(data.products)) {
-        setProducts(data.products);
+        setIsBackendAvailable(true);
+        setProducts(resolveAssetUrls(data.products));
+        return;
       }
-    } catch (err) {
-      console.error('Failed to load products from server:', err);
+      throw new Error('Invalid API payload');
+    } catch {
+      setIsBackendAvailable(false);
+      try {
+        const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProducts(resolveAssetUrls(parsed));
+            return;
+          }
+        }
+      } catch {
+        // ignore storage errors
+      }
+      setProducts(resolveAssetUrls(bundledProducts as DigitalProduct[]));
     } finally {
       setLoading(false);
     }
@@ -204,11 +245,17 @@ export default function App() {
     return null;
   };
 
-  // Open product modal and push clean URL to browser address bar
+  // Open product modal and push clean URL (uses ?product=:id on GitHub Pages/static subpaths)
   const handleOpenProduct = (product: DigitalProduct) => {
     setSelectedProduct(product);
     try {
-      window.history.pushState({ productId: product.id }, '', `/products/${product.id}`);
+      if (!isBackendAvailable || window.location.hostname.endsWith('github.io')) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('product', product.id);
+        window.history.pushState({ productId: product.id }, '', url.toString());
+      } else {
+        window.history.pushState({ productId: product.id }, '', `/products/${product.id}`);
+      }
     } catch {
       // ignore state error
     }
@@ -218,7 +265,11 @@ export default function App() {
   const handleCloseProduct = () => {
     setSelectedProduct(null);
     try {
-      if (
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('product')) {
+        url.searchParams.delete('product');
+        window.history.pushState(null, '', url.toString());
+      } else if (
         window.location.pathname.startsWith('/products/') ||
         window.location.pathname.startsWith('/product/')
       ) {
@@ -312,38 +363,87 @@ export default function App() {
   });
   const sortedProducts = sortProductList(filteredProducts);
 
-  // Save Product (Add or Edit)
+  // Save Product (Add or Edit) — uses API on Node host or localStorage on static hosts
   const handleSaveProduct = async (productData: Partial<DigitalProduct>) => {
-    try {
+    const saveLocally = () => {
+      let updatedList: DigitalProduct[];
       if (editingProduct) {
-        // Update existing product
-        const res = await fetch(`/api/products/${editingProduct.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productData),
-        });
-        const data = await res.json();
-        if (data.success) {
-          setProducts((prev) =>
-            prev.map((p) => (p.id === editingProduct.id ? data.product : p))
-          );
+        updatedList = products.map((p) =>
+          p.id === editingProduct.id
+            ? { ...p, ...productData, updatedAt: new Date().toISOString() }
+            : p
+        );
+      } else {
+        const created: DigitalProduct = {
+          id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          titleKu: '',
+          titleEn: '',
+          descriptionKu: '',
+          descriptionEn: '',
+          category: 'websites',
+          price: 0,
+          currency: 'USD',
+          isFree: true,
+          fileType: '',
+          fileSize: '',
+          rating: 5,
+          reviewsCount: 1,
+          downloadUrl: '',
+          purchaseUrl: '',
+          imageUrl: '',
+          tags: [],
+          features: [],
+          createdAt: new Date().toISOString(),
+          ...productData,
+        };
+        updatedList = [created, ...products];
+      }
+      setProducts(updatedList);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedList));
+      } catch {
+        // ignore storage quota errors
+      }
+    };
+
+    try {
+      if (isBackendAvailable) {
+        if (editingProduct) {
+          const res = await fetch(`/api/products/${editingProduct.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productData),
+          });
+          const data = await res.json();
+          if (data.success) {
+            setProducts((prev) =>
+              prev.map((p) => (p.id === editingProduct.id ? data.product : p))
+            );
+          } else {
+            saveLocally();
+          }
+        } else {
+          const res = await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productData),
+          });
+          const data = await res.json();
+          if (data.success) {
+            setProducts((prev) => [data.product, ...prev]);
+          } else {
+            saveLocally();
+          }
         }
       } else {
-        // Create new product
-        const res = await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productData),
-        });
-        const data = await res.json();
-        if (data.success) {
-          setProducts((prev) => [data.product, ...prev]);
-        }
+        saveLocally();
       }
       setEditingProduct(null);
       setIsAddModalOpen(false);
-    } catch (err) {
-      console.error('Error saving product:', err);
+    } catch {
+      saveLocally();
+      setEditingProduct(null);
+      setIsAddModalOpen(false);
     }
   };
 
@@ -351,17 +451,35 @@ export default function App() {
   const handleDeleteProduct = async (id: string) => {
     const confirmMsg = isKu
       ? 'دڵنیایت لە سڕینەوەی ئەم بەرهەمە دیجیتاڵییە؟'
+      : isAr
+      ? 'هل أنت متأكد من حذف هذا المنتج الرقمي؟'
       : 'Are you sure you want to delete this digital product?';
     if (!window.confirm(confirmMsg)) return;
 
-    try {
-      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setProducts((prev) => prev.filter((p) => p.id !== id));
+    const deleteLocally = () => {
+      const updated = products.filter((p) => p.id !== id);
+      setProducts(updated);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      } catch {
+        // ignore
       }
-    } catch (err) {
-      console.error('Error deleting product:', err);
+    };
+
+    try {
+      if (isBackendAvailable) {
+        const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          setProducts((prev) => prev.filter((p) => p.id !== id));
+        } else {
+          deleteLocally();
+        }
+      } else {
+        deleteLocally();
+      }
+    } catch {
+      deleteLocally();
     }
   };
 
@@ -382,76 +500,82 @@ export default function App() {
     navigator.clipboard.writeText(imageUrl);
   };
 
-  // Export products to CSV or JSON offline backup
+  // Export products to CSV or JSON offline backup (works on both Node server & GitHub Pages)
   const handleExport = (format: 'csv' | 'json') => {
     setExporting(format);
     const dateStr = new Date().toISOString().split('T')[0];
-    try {
-      const link = document.createElement('a');
-      link.href = `/api/export/${format}`;
-      link.setAttribute('download', `sas-dijitalproducts-${format === 'csv' ? 'export' : 'backup'}-${dateStr}.${format}`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => {
-        setExporting(null);
-        setIsExportMenuOpen(false);
-      }, 500);
-    } catch {
-      // Client-side fallback if backend request fails
-      if (format === 'json') {
-        const blob = new Blob([JSON.stringify(products, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `sas-dijitalproducts-backup-${dateStr}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } else {
-        const headers = [
-          'ID', 'Title_KU', 'Title_EN', 'Category', 'Price_USD', 'Is_Free',
-          'FileType', 'FileSize', 'Progress_Percent', 'Target_Deadline',
-          'Project_Status', 'Holding_Client', 'Milestones_Completed', 'Milestones_Total',
-          'Download_URL', 'Purchase_URL', 'Demo_URL', 'Rating', 'Reviews_Count',
-          'Tags', 'Features', 'Created_At'
-        ];
-        const escapeCSV = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-        const rows = products.map((p) => [
-          escapeCSV(p.id),
-          escapeCSV(p.titleKu),
-          escapeCSV(p.titleEn),
-          escapeCSV(p.category),
-          escapeCSV(p.price),
-          escapeCSV(p.isFree ? 'Yes' : 'No'),
-          escapeCSV(p.fileType),
-          escapeCSV(p.fileSize),
-          escapeCSV(p.progressPercent ?? ''),
-          escapeCSV(p.targetDeadline ?? ''),
-          escapeCSV(p.projectStatus ?? ''),
-          escapeCSV(p.clientOrHoldingName ?? ''),
-          escapeCSV(p.milestonesCompleted ?? ''),
-          escapeCSV(p.milestonesTotal ?? ''),
-          escapeCSV(p.downloadUrl),
-          escapeCSV(p.purchaseUrl),
-          escapeCSV(p.demoUrl ?? ''),
-          escapeCSV(p.rating),
-          escapeCSV(p.reviewsCount),
-          escapeCSV(Array.isArray(p.tags) ? p.tags.join('; ') : ''),
-          escapeCSV(Array.isArray(p.features) ? p.features.join('; ') : ''),
-          escapeCSV(p.createdAt)
-        ].join(','));
-        const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `sas-dijitalproducts-export-${dateStr}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+
+    if (isBackendAvailable) {
+      try {
+        const link = document.createElement('a');
+        link.href = `/api/export/${format}`;
+        link.setAttribute('download', `sas-dijitalproducts-${format === 'csv' ? 'export' : 'backup'}-${dateStr}.${format}`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => {
+          setExporting(null);
+          setIsExportMenuOpen(false);
+        }, 500);
+        return;
+      } catch {
+        // fall through to client-side download
       }
-      setExporting(null);
-      setIsExportMenuOpen(false);
     }
+
+    if (format === 'json') {
+      const blob = new Blob([JSON.stringify(products, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sas-dijitalproducts-backup-${dateStr}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const headers = [
+        'ID', 'Title_KU', 'Title_AR', 'Title_EN', 'Category', 'Price_USD', 'Is_Free',
+        'FileType', 'FileSize', 'Progress_Percent', 'Target_Deadline',
+        'Project_Status', 'Holding_Client', 'Milestones_Completed', 'Milestones_Total',
+        'Download_URL', 'Purchase_URL', 'Demo_URL', 'Rating', 'Reviews_Count',
+        'Tags', 'Features', 'Created_At'
+      ];
+      const escapeCSV = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = products.map((p) => [
+        escapeCSV(p.id),
+        escapeCSV(p.titleKu),
+        escapeCSV(p.titleAr ?? ''),
+        escapeCSV(p.titleEn),
+        escapeCSV(p.category),
+        escapeCSV(p.price),
+        escapeCSV(p.isFree ? 'Yes' : 'No'),
+        escapeCSV(p.fileType),
+        escapeCSV(p.fileSize),
+        escapeCSV(p.progressPercent ?? ''),
+        escapeCSV(p.targetDeadline ?? ''),
+        escapeCSV(p.projectStatus ?? ''),
+        escapeCSV(p.clientOrHoldingName ?? ''),
+        escapeCSV(p.milestonesCompleted ?? ''),
+        escapeCSV(p.milestonesTotal ?? ''),
+        escapeCSV(p.downloadUrl),
+        escapeCSV(p.purchaseUrl),
+        escapeCSV(p.demoUrl ?? ''),
+        escapeCSV(p.rating),
+        escapeCSV(p.reviewsCount),
+        escapeCSV(Array.isArray(p.tags) ? p.tags.join('; ') : ''),
+        escapeCSV(Array.isArray(p.features) ? p.features.join('; ') : ''),
+        escapeCSV(p.createdAt)
+      ].join(','));
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sas-dijitalproducts-export-${dateStr}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    setExporting(null);
+    setIsExportMenuOpen(false);
   };
 
   // Icon renderer helper

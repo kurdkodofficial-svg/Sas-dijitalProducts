@@ -55,7 +55,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     ? (product.descriptionKu || product.descriptionEn)
     : (product.descriptionEn || product.descriptionKu);
 
-  const productUrl = `${window.location.origin}/products/${product.id}`;
+  const productUrl =
+    typeof window !== 'undefined' && window.location.hostname.endsWith('github.io')
+      ? `${window.location.origin}${window.location.pathname}?product=${product.id}`
+      : `${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(productUrl);
