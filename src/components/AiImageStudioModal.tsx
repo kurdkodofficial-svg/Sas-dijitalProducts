@@ -16,12 +16,12 @@ import {
   Sliders,
   Upload
 } from 'lucide-react';
-import { SupportedImageModel, AspectRatioType, ImageSizeType } from '../types';
+import { SupportedImageModel, AspectRatioType, ImageSizeType, Language } from '../types';
 
 interface AiImageStudioModalProps {
   isOpen: boolean;
   initialPrompt?: string;
-  language: 'ku' | 'en';
+  language: Language;
   onClose: () => void;
   onApplyImageToProduct?: (imageUrl: string) => void;
 }

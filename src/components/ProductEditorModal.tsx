@@ -17,12 +17,12 @@ import {
   Building,
   Calendar
 } from 'lucide-react';
-import { DigitalProduct } from '../types';
+import { DigitalProduct, Language } from '../types';
 
 interface ProductEditorModalProps {
   product: DigitalProduct | null;
   isOpen: boolean;
-  language: 'ku' | 'en';
+  language: Language;
   initialCategory?: DigitalProduct['category'];
   onClose: () => void;
   onSave: (productData: Partial<DigitalProduct>) => Promise<void>;
@@ -41,10 +41,14 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   if (!isOpen) return null;
 
   const isKu = language === 'ku';
+  const isAr = language === 'ar';
+  const isEn = language === 'en';
 
   const [titleKu, setTitleKu] = useState(product?.titleKu || '');
+  const [titleAr, setTitleAr] = useState(product?.titleAr || '');
   const [titleEn, setTitleEn] = useState(product?.titleEn || '');
   const [descriptionKu, setDescriptionKu] = useState(product?.descriptionKu || '');
+  const [descriptionAr, setDescriptionAr] = useState(product?.descriptionAr || '');
   const [descriptionEn, setDescriptionEn] = useState(product?.descriptionEn || '');
   const [category, setCategory] = useState<DigitalProduct['category']>(product?.category || initialCategory || 'city-management');
   const [price, setPrice] = useState(product?.price !== undefined ? product.price.toString() : '');
@@ -203,8 +207,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
 
       await onSave({
         titleKu: titleKu.trim(),
+        titleAr: titleAr.trim() || undefined,
         titleEn: titleEn.trim(),
         descriptionKu: descriptionKu.trim(),
+        descriptionAr: descriptionAr.trim() || undefined,
         descriptionEn: descriptionEn.trim(),
         category,
         price: isFree ? 0 : parseFloat(price) || 0,
@@ -364,30 +370,43 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
           )}
 
           {/* Titles */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                {isKu ? 'ناونیشانی بەرهەم بە کوردی *' : 'Kurdish Title *'}
+                {isKu ? 'ناونیشانی بەرهەم بە کوردی *' : isAr ? 'عنوان المنتج بالكردية *' : 'Kurdish Title *'}
               </label>
               <input
                 type="text"
                 required
                 value={titleKu}
                 onChange={(e) => setTitleKu(e.target.value)}
-                placeholder="نموونە: پاکێجی فۆنتەکانی کوردی و عەرەبی بۆ دیزاینەران"
+                placeholder="نموونە: سیستەمی بەڕێوەبردنی شار و دارایی"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                {isKu ? 'ناونیشان بە ئینگلیزی (بۆ گووگڵ)' : 'English Title (For Google)'}
+                {isKu ? 'ناونیشان بە عەرەبی (Arabic Title)' : isAr ? 'عنوان المنتج بالعربية' : 'Arabic Title'}
+              </label>
+              <input
+                type="text"
+                value={titleAr}
+                onChange={(e) => setTitleAr(e.target.value)}
+                placeholder="مثال: نظام إدارة المجمعات والأنظمة المالية"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                {isKu ? 'ناونیشان بە ئینگلیزی (بۆ گووگڵ)' : isAr ? 'العنوان بالإنجليزية (لجوجل)' : 'English Title (For Google)'}
               </label>
               <input
                 type="text"
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
-                placeholder="e.g. Modern UI Kit & React Components"
+                placeholder="e.g. Modern UI Kit & Management ERP"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
               />
             </div>
@@ -652,6 +671,15 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                     />
                   </div>
                 </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <span>
+                    {isKu
+                      ? 'تێبینی: تەواوی نەخشەی ڕێگا (Timeline Roadmap) لە مۆداڵی بەرهەمەکە بەپێی ئەم وادەی دانراوە و ژمارەی قۆناغەکان بە شێوازی گرافیکی دەردەکەوێت.'
+                      : 'Note: The interactive visual Timeline roadmap in the product modal dynamically parses this target deadline and milestone count.'}
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -740,10 +768,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
           {/* Descriptions */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              {isKu ? 'وەسفی بەرهەم بە کوردی:' : 'Kurdish Description:'}
+              {isKu ? 'وەسفی بەرهەم بە کوردی:' : isAr ? 'وصف المنتج بالكردية:' : 'Kurdish Description:'}
             </label>
             <textarea
-              rows={4}
+              rows={3}
               value={descriptionKu}
               onChange={(e) => setDescriptionKu(e.target.value)}
               placeholder="دەربارەی بەرهەمەکە بنووسە: بۆ کێیە؟ چ سوودێکی هەیە؟ چی لەخۆدەگرێت؟"
@@ -753,7 +781,20 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              {isKu ? 'وەسفی بەرهەم بە ئینگلیزی (بۆ گووگڵ و بەکارهێنەرانی جیهانی):' : 'English Description:'}
+              {isKu ? 'وەسفی بەرهەم بە عەرەبی (Arabic Description):' : isAr ? 'وصف المنتج بالعربية:' : 'Arabic Description:'}
+            </label>
+            <textarea
+              rows={3}
+              value={descriptionAr}
+              onChange={(e) => setDescriptionAr(e.target.value)}
+              placeholder="اكتب وصفاً مفصلاً للمنتج والمنظومة الرقمية باللغة العربية..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 leading-relaxed"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              {isKu ? 'وەسفی بەرهەم بە ئینگلیزی (بۆ گووگڵ و بەکارهێنەرانی جیهانی):' : isAr ? 'الوصف بالإنجليزية (لمحركات البحث):' : 'English Description:'}
             </label>
             <textarea
               rows={3}

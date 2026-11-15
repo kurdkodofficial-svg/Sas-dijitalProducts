@@ -19,11 +19,13 @@ import {
   Building,
   CheckCircle2
 } from 'lucide-react';
-import { DigitalProduct } from '../types';
+import { DigitalProduct, Language } from '../types';
+import { ProjectTimeline } from './ProjectTimeline';
+import { PriceTrendChart } from './PriceTrendChart';
 
 interface ProductModalProps {
   product: DigitalProduct | null;
-  language: 'ku' | 'en';
+  language: Language;
   onClose: () => void;
   onEdit: (product: DigitalProduct) => void;
 }
@@ -38,9 +40,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const [copiedLink, setCopiedLink] = useState(false);
   const isKu = language === 'ku';
+  const isAr = language === 'ar';
+  const isEn = language === 'en';
 
-  const title = isKu ? (product.titleKu || product.titleEn) : (product.titleEn || product.titleKu);
-  const description = isKu ? (product.descriptionKu || product.descriptionEn) : (product.descriptionEn || product.descriptionKu);
+  const title = isAr
+    ? (product.titleAr || product.titleKu || product.titleEn)
+    : isKu
+    ? (product.titleKu || product.titleEn)
+    : (product.titleEn || product.titleKu);
+
+  const description = isAr
+    ? (product.descriptionAr || product.descriptionKu || product.descriptionEn)
+    : isKu
+    ? (product.descriptionKu || product.descriptionEn)
+    : (product.descriptionEn || product.descriptionKu);
 
   const productUrl = `${window.location.origin}/products/${product.id}`;
 
@@ -65,7 +78,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <span>•</span>
             <span className="flex items-center gap-1 text-emerald-400">
               <ShieldCheck className="w-3.5 h-3.5" />
-              {isKu ? 'تەواوی بەستەرەکان پشتڕاستکراون' : 'Verified Links'}
+              {isKu ? 'تەواوی بەستەرەکان پشتڕاستکراون' : isAr ? 'كافة الروابط موثوقة' : 'Verified Links'}
             </span>
           </div>
 
@@ -73,10 +86,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <button
               onClick={handleCopyLink}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-medium"
-              title={isKu ? 'کۆپیکردنی لینکی بەرهەم' : 'Copy link'}
+              title={isKu ? 'کۆپیکردنی لینکی بەرهەم' : isAr ? 'نسخ رابط المنتج' : 'Copy link'}
             >
               {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
-              <span className="hidden sm:inline">{copiedLink ? (isKu ? 'کۆپیکرا' : 'Copied!') : (isKu ? 'بەشکردن' : 'Share')}</span>
+              <span className="hidden sm:inline">{copiedLink ? (isKu ? 'کۆپیکرا' : isAr ? 'تم النسخ!' : 'Copied!') : (isKu ? 'بەشکردن' : isAr ? 'مشاركة' : 'Share')}</span>
             </button>
 
             <button
@@ -85,7 +98,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 onEdit(product);
               }}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-indigo-400 transition-colors"
-              title={isKu ? 'دەستکاریکردن' : 'Edit'}
+              title={isKu ? 'دەستکاریکردن' : isAr ? 'تعديل' : 'Edit'}
             >
               <Edit3 className="w-4 h-4" />
             </button>
@@ -113,7 +126,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 className="w-full h-auto aspect-square sm:aspect-[4/3] object-cover object-center group-hover:scale-102 transition-transform duration-500"
               />
               <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-xl border border-slate-800 text-xs font-black text-indigo-400">
-                {product.isFree ? (isKu ? 'خۆڕایی' : 'FREE') : `$${product.price?.toFixed(2)}`}
+                {product.isFree ? (isKu ? 'خۆڕایی' : isAr ? 'مجاناً' : 'FREE') : `$${product.price?.toFixed(2)}`}
               </div>
             </div>
 
@@ -125,7 +138,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   <div className="flex items-center gap-1 text-amber-400 text-xs">
                     <Star className="w-4 h-4 fill-current" />
                     <span className="font-bold text-white text-sm">{product.rating || 5.0}</span>
-                    <span className="text-slate-500">({product.reviewsCount || 1} {isKu ? 'پێداچوونەوە' : 'reviews'})</span>
+                    <span className="text-slate-500">({product.reviewsCount || 1} {isKu ? 'پێداچوونەوە' : isAr ? 'تقييم' : 'reviews'})</span>
                   </div>
                   <span className="text-slate-600">•</span>
                   <div className="flex items-center gap-1 text-xs text-slate-400">
@@ -141,12 +154,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <div className="mt-4 flex flex-wrap gap-2 text-xs">
                   <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700/60">
                     <FileCode2 className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>{isKu ? 'فۆرمات: ' : 'Format: '}{product.fileType || 'Digital Pack'}</span>
+                    <span>{isKu ? 'فۆرمات: ' : isAr ? 'الصيغة: ' : 'Format: '}{product.fileType || 'Digital Pack'}</span>
                   </span>
                   {product.fileSize && (
                     <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700/60">
                       <HardDrive className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{isKu ? 'قەبارە: ' : 'Size: '}{product.fileSize}</span>
+                      <span>{isKu ? 'قەبارە: ' : isAr ? 'الحجم: ' : 'Size: '}{product.fileSize}</span>
                     </span>
                   )}
                 </div>
@@ -155,7 +168,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               {/* Action Buttons Section */}
               <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {isKu ? 'بەستەرە سەرەکییەکان و دەستڕاگەیشتن:' : 'Direct Links & Access:'}
+                  {isKu ? 'بەستەرە سەرەکییەکان و دەستڕاگەیشتن:' : isAr ? 'روابط الوصول المباشر والمنصة:' : 'Direct Links & Access:'}
                 </h4>
 
                 <div className="flex flex-col gap-2.5">
@@ -168,7 +181,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
                     >
                       <Globe2 className="w-4 h-4" />
-                      <span>{isKu ? 'کردنەوە و سەردانیکردنی ڕاستەوخۆ (سەردانی پلاتفۆرم)' : 'Open & Visit Live Platform'}</span>
+                      <span>{isKu ? 'کردنەوە و سەردانیکردنی ڕاستەوخۆ (سەردانی پلاتفۆرم)' : isAr ? 'فتح وزيارة المنصة مباشرة' : 'Open & Visit Live Platform'}</span>
                     </a>
                   )}
 
@@ -180,7 +193,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
                     >
                       <Download className="w-4 h-4" />
-                      <span>{isKu ? 'داگرتنی ڕاستەوخۆ (Google Drive / Telegram / File)' : 'Direct Download / Drive Access'}</span>
+                      <span>{isKu ? 'داگرتنی ڕاستەوخۆ (Google Drive / Telegram / File)' : isAr ? 'تحميل مباشر (Google Drive / Telegram / ملف)' : 'Direct Download / Drive Access'}</span>
                     </a>
                   )}
 
@@ -329,6 +342,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Visual Timeline Component - Chronological Project Roadmap for Management Products */}
+            {(['city-management', 'management-erp', 'financial-systems'].includes(product.category) ||
+              product.progressPercent !== undefined ||
+              Boolean(product.targetDeadline) ||
+              Boolean(product.milestonesTotal)) && (
+              <ProjectTimeline product={product} language={language} />
+            )}
+
+            {/* Financial Valuation & Price Trend Chart (Recharts) */}
+            {(['financial-systems', 'city-management', 'management-erp'].includes(product.category) ||
+              product.valuationHistory ||
+              product.priceHistory ||
+              product.price > 0 ||
+              product.progressPercent !== undefined) && (
+              <PriceTrendChart product={product} language={language} />
             )}
 
             <div>

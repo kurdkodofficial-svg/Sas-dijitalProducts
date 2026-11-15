@@ -28,7 +28,7 @@ import {
   FileJson,
   Check
 } from 'lucide-react';
-import { DigitalProduct, CategoryKey, CategoryInfo, SortOption } from './types';
+import { DigitalProduct, CategoryKey, CategoryInfo, SortOption, Language } from './types';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ProductCard } from './components/ProductCard';
@@ -38,7 +38,7 @@ import { AiImageStudioModal } from './components/AiImageStudioModal';
 import { GoogleSeoHubModal } from './components/GoogleSeoHubModal';
 
 export default function App() {
-  const [language, setLanguage] = useState<'ku' | 'en'>('ku');
+  const [language, setLanguage] = useState<Language>('ku');
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('all');
@@ -58,6 +58,8 @@ export default function App() {
   const [exporting, setExporting] = useState<'csv' | 'json' | null>(null);
 
   const isKu = language === 'ku';
+  const isAr = language === 'ar';
+  const isEn = language === 'en';
 
   // Primary categories requested by the user:
   // City management (Shari Andazyaran / Italian Village 1 & 2), Financial systems, Management ERP,
@@ -150,8 +152,8 @@ export default function App() {
 
   // Sync document language and direction
   useEffect(() => {
-    document.documentElement.lang = isKu ? 'ku' : 'en';
-    document.documentElement.dir = isKu ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'en' ? 'ltr' : 'rtl';
   }, [language]);
 
   // Load products from server
@@ -553,7 +555,7 @@ export default function App() {
                 >
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id} className="bg-slate-950 text-slate-100">
-                      {isKu ? cat.labelKu : cat.labelEn}
+                      {isKu ? cat.labelKu : isAr ? (cat.labelAr || cat.labelKu) : cat.labelEn}
                     </option>
                   ))}
                 </select>
@@ -563,17 +565,17 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="w-4 h-4 text-cyan-400" />
                 <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-                  {isKu ? 'ڕیزبەندی:' : 'Sort By:'}
+                  {isKu ? 'ڕیزبەندی:' : isAr ? 'الترتيب:' : 'Sort By:'}
                 </span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="bg-slate-950 border border-slate-700/80 hover:border-cyan-500 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 transition-all cursor-pointer"
                 >
-                  <option value="newest">{isKu ? 'نوێترین (Newest)' : 'Newest'}</option>
-                  <option value="price-desc">{isKu ? 'نرخ: لە بەرزەوە بۆ نزم (High to Low)' : 'Price (High to Low)'}</option>
-                  <option value="price-asc">{isKu ? 'نرخ: لە نزمەوە بۆ بەرز (Low to High)' : 'Price (Low to High)'}</option>
-                  <option value="rating">{isKu ? 'بەرزترین هەڵسەنگاندن' : 'Highest Rated'}</option>
+                  <option value="newest">{isKu ? 'نوێترین (Newest)' : isAr ? 'الأحدث (Newest)' : 'Newest'}</option>
+                  <option value="price-desc">{isKu ? 'نرخ: لە بەرزەوە بۆ نزم (High to Low)' : isAr ? 'السعر: من الأعلى إلى الأقل' : 'Price (High to Low)'}</option>
+                  <option value="price-asc">{isKu ? 'نرخ: لە نزمەوە بۆ بەرز (Low to High)' : isAr ? 'السعر: من الأقل إلى الأعلى' : 'Price (Low to High)'}</option>
+                  <option value="rating">{isKu ? 'بەرزترین هەڵسەنگاندن' : isAr ? 'الأعلى تقييماً' : 'Highest Rated'}</option>
                 </select>
               </div>
 
@@ -589,7 +591,7 @@ export default function App() {
                     }`}
                   >
                     <ListFilter className="w-3.5 h-3.5" />
-                    <span>{isKu ? 'بەش بە بەش' : 'By Sections'}</span>
+                    <span>{isKu ? 'بەش بە بەش' : isAr ? 'حسب الأقسام' : 'By Sections'}</span>
                   </button>
                   <button
                     onClick={() => setViewMode('grid')}
@@ -600,7 +602,7 @@ export default function App() {
                     }`}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
-                    <span>{isKu ? 'تۆڕی گشتی' : 'Grid'}</span>
+                    <span>{isKu ? 'تۆڕی گشتی' : isAr ? 'شبكة الكل' : 'Grid'}</span>
                   </button>
                 </div>
               )}

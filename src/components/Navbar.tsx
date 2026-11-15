@@ -9,10 +9,11 @@ import {
   ShieldCheck,
   Languages
 } from 'lucide-react';
+import { Language } from '../types';
 
 interface NavbarProps {
-  language: 'ku' | 'en';
-  setLanguage: (lang: 'ku' | 'en') => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   onOpenAddModal: () => void;
@@ -32,6 +33,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   productCount,
 }) => {
   const isKu = language === 'ku';
+  const isAr = language === 'ar';
+  const isEn = language === 'en';
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80">
@@ -93,24 +96,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Google SEO Hub Button */}
             <button
               onClick={onOpenSeoHub}
-              title={isKu ? 'پشکنینی گووگڵ و ڕیزبەندی بەبێ باکێند' : 'Google SEO & Indexing Hub'}
+              title={isKu ? 'پشکنینی گووگڵ و ڕیزبەندی بەبێ باکێند' : isAr ? 'أرشفة جوجل ومحرك السيو' : 'Google SEO & Indexing Hub'}
               className="flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all shadow-sm shadow-emerald-950"
             >
               <Globe2 className="w-4 h-4 text-emerald-400 animate-spin-slow" />
               <span className="hidden sm:inline">
-                {isKu ? 'بڵاوکردنەوە لە گووگڵ' : 'Google SEO'}
+                {isKu ? 'بڵاوکردنەوە لە گووگڵ' : isAr ? 'أرشفة جوجل' : 'Google SEO'}
               </span>
             </button>
 
             {/* AI Image Studio Button (gemini-3-pro-image-preview & gemini-nano-banana-2.1 with 1K, 2K, 4K) */}
             <button
               onClick={onOpenImageStudio}
-              title={isKu ? 'دروستکەری وێنەی باڵا بە ژیری دەستکرد (1K/2K/4K)' : 'AI Image Studio (1K, 2K, 4K)'}
+              title={isKu ? 'دروستکەری وێنەی باڵا بە ژیری دەستکرد (1K/2K/4K)' : isAr ? 'استوديو الذكاء الاصطناعي لتوليد الصور' : 'AI Image Studio (1K, 2K, 4K)'}
               className="flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-gradient-to-r from-violet-600/30 to-indigo-600/30 hover:from-violet-600/50 hover:to-indigo-600/50 text-indigo-300 border border-indigo-500/40 transition-all"
             >
               <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
               <span className="hidden md:inline">
-                {isKu ? 'ستۆدیۆی وێنەی AI' : 'AI Studio'}
+                {isKu ? 'ستۆدیۆی وێنەی AI' : isAr ? 'استوديو AI' : 'AI Studio'}
               </span>
               <span className="text-[10px] bg-indigo-500/40 text-indigo-200 px-1.5 py-0.5 rounded-full font-mono">
                 1K-4K
@@ -120,21 +123,51 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Add Product Button */}
             <button
               onClick={onOpenAddModal}
-              className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:-translate-y-0.5 transition-all"
+              className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:-translate-y-0.5 transition-all cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>{isKu ? 'زیادکردنی بەرهەم' : 'Add Product'}</span>
+              <span>{isKu ? 'زیادکردنی بەرهەم' : isAr ? 'إضافة منتج' : 'Add Product'}</span>
             </button>
 
-            {/* Language Switcher */}
-            <button
-              onClick={() => setLanguage(isKu ? 'en' : 'ku')}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors flex items-center gap-1 text-xs font-semibold"
-              title="تۆگڵی زمان / Toggle Language"
-            >
-              <Languages className="w-4 h-4 text-slate-400" />
-              <span>{isKu ? 'EN' : 'کوردی'}</span>
-            </button>
+            {/* 3-Language Selector: کوردی (Kurdish) | العربية (Arabic) | EN (English) */}
+            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setLanguage('ku')}
+                className={`px-2 sm:px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  language === 'ku'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="کوردی (Kurdish)"
+              >
+                کوردی
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('ar')}
+                className={`px-2 sm:px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  language === 'ar'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="العربية (Arabic)"
+              >
+                العربية
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`px-2 py-1.5 rounded-lg transition-all font-mono cursor-pointer ${
+                  language === 'en'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="English"
+              >
+                EN
+              </button>
+            </div>
 
           </div>
         </div>

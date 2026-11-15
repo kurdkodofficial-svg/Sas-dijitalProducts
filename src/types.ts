@@ -1,8 +1,23 @@
+export type Language = 'ku' | 'ar' | 'en';
+
+export interface PricePoint {
+  date: string;
+  price?: number;
+  valuationUSD?: number;
+  revenueUSD?: number;
+  label?: string;
+  noteKu?: string;
+  noteAr?: string;
+  noteEn?: string;
+}
+
 export interface DigitalProduct {
   id: string;
   titleKu: string;
+  titleAr?: string;
   titleEn: string;
   descriptionKu: string;
+  descriptionAr?: string;
   descriptionEn: string;
   category: 
     | 'city-management' 
@@ -43,6 +58,9 @@ export interface DigitalProduct {
   milestonesTotal?: number;
   milestonesCompleted?: number;
   clientOrHoldingName?: string; // Holding or company name
+  // Financial valuation and price history
+  priceHistory?: PricePoint[];
+  valuationHistory?: PricePoint[];
 }
 
 export type CategoryKey = 
@@ -64,9 +82,11 @@ export type SortOption = 'newest' | 'price-desc' | 'price-asc' | 'rating';
 export interface CategoryInfo {
   id: CategoryKey;
   labelKu: string;
+  labelAr?: string;
   labelEn: string;
   icon: string;
   descriptionKu?: string;
+  descriptionAr?: string;
   descriptionEn?: string;
 }
 

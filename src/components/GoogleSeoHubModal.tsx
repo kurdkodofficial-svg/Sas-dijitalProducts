@@ -16,11 +16,11 @@ import {
   ArrowRight,
   Zap
 } from 'lucide-react';
-import { DigitalProduct } from '../types';
+import { DigitalProduct, Language } from '../types';
 
 interface GoogleSeoHubModalProps {
   isOpen: boolean;
-  language: 'ku' | 'en';
+  language: Language;
   products: DigitalProduct[];
   onClose: () => void;
   onImportProducts: (imported: DigitalProduct[]) => void;

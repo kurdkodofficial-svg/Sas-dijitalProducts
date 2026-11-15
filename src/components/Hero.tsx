@@ -12,8 +12,10 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 
+import { Language } from '../types';
+
 interface HeroProps {
-  language: 'ku' | 'en';
+  language: Language;
   totalProducts: number;
   onOpenAddModal: () => void;
   onOpenImageStudio: () => void;
@@ -28,6 +30,8 @@ export const Hero: React.FC<HeroProps> = ({
   onOpenSeoHub,
 }) => {
   const isKu = language === 'ku';
+  const isAr = language === 'ar';
+  const isEn = language === 'en';
 
   return (
     <div className="relative overflow-hidden pt-8 pb-12 sm:pt-12 sm:pb-16 border-b border-slate-900 bg-radial-[at_50%_0%] from-indigo-950/40 via-slate-950 to-slate-950">
@@ -43,10 +47,10 @@ export const Hero: React.FC<HeroProps> = ({
             <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             <DatabaseZap className="w-4 h-4 text-emerald-400" />
             <span className="font-semibold text-emerald-300">
-              {isKu ? 'وەڵامی پرسیارەکەت:' : 'Direct Answer:'}
+              {isKu ? 'وەڵامی پرسیارەکەت:' : isAr ? 'الإجابة المباشرة:' : 'Direct Answer:'}
             </span>
             <span className="text-slate-300">
-              {isKu ? 'پێویستت بە هیچ داتابەیس و باکێندێکی گەورە نییە بۆ گووگڵ!' : 'Zero bloated backend required to rank #1 on Google!'}
+              {isKu ? 'پێویستت بە هیچ داتابەیس و باکێندێکی گەورە نییە بۆ گووگڵ!' : isAr ? 'لا تحتاج لقاعدة بيانات معقدة لتتصدر نتائج جوجل!' : 'Zero bloated backend required to rank #1 on Google!'}
             </span>
           </div>
         </div>
@@ -61,6 +65,14 @@ export const Hero: React.FC<HeroProps> = ({
                   Sas-dijitalProducts
                 </span>
                 ، ئامادە بۆ ڕیزبەندی لە گووگڵ
+              </>
+            ) : isAr ? (
+              <>
+                كافة مواقعك وأنظمتك الرقمية في{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-300 to-emerald-400">
+                  Sas-dijitalProducts
+                </span>
+                ، جاهزة للأرشفة والظهور في جوجل
               </>
             ) : (
               <>
@@ -77,6 +89,10 @@ export const Hero: React.FC<HeroProps> = ({
             {isKu ? (
               <>
                 کۆکراوەی سەرجەم ماڵپەڕ، پۆڕتاڵ و سیستەمە ئەلیکترۆنییەکانت بە شێوازێکی مۆدێرن و ڕێکخراو لە یەک شوێندا، بە تەواوی ئامادەکراو بۆ ناساندن و دەرکەوتن لە گووگڵ.
+              </>
+            ) : isAr ? (
+              <>
+                منصة موحدة ومحفظة احترافية لعرض كافة مواقعك ومنصاتك الرقمية وأنظمة إدارة الأعمال، مهيأة بالكامل للظهور في محركات بحث جوجل.
               </>
             ) : (
               <>

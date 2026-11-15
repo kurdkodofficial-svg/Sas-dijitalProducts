@@ -16,11 +16,11 @@ import {
   Clock,
   Building
 } from 'lucide-react';
-import { DigitalProduct } from '../types';
+import { DigitalProduct, Language } from '../types';
 
 interface ProductCardProps {
   product: DigitalProduct;
-  language: 'ku' | 'en';
+  language: Language;
   onViewDetails: (product: DigitalProduct) => void;
   onEdit: (product: DigitalProduct) => void;
   onDelete: (id: string) => void;
@@ -35,9 +35,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const isKu = language === 'ku';
+  const isAr = language === 'ar';
+  const isEn = language === 'en';
 
-  const title = isKu ? (product.titleKu || product.titleEn) : (product.titleEn || product.titleKu);
-  const description = isKu ? (product.descriptionKu || product.descriptionEn) : (product.descriptionEn || product.descriptionKu);
+  const title = isAr
+    ? (product.titleAr || product.titleKu || product.titleEn)
+    : isKu
+    ? (product.titleKu || product.titleEn)
+    : (product.titleEn || product.titleKu);
+
+  const description = isAr
+    ? (product.descriptionAr || product.descriptionKu || product.descriptionEn)
+    : isKu
+    ? (product.descriptionKu || product.descriptionEn)
+    : (product.descriptionEn || product.descriptionKu);
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -262,11 +273,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   </span>
                 )}
 
-                {product.milestonesTotal !== undefined && product.milestonesTotal > 0 && (
-                  <span className="text-[10px] text-slate-500 font-mono">
-                    {product.milestonesCompleted || 0}/{product.milestonesTotal} {isKu ? 'قۆناغ' : 'steps'}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {product.milestonesTotal !== undefined && product.milestonesTotal > 0 && (
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {product.milestonesCompleted || 0}/{product.milestonesTotal} {isKu ? 'قۆناغ' : 'steps'}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewDetails(product);
+                    }}
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
+                    title={isKu ? 'بینینی تەواوی نەخشەی ڕێگای پڕۆژەکە' : 'View full project roadmap timeline'}
+                  >
+                    <span>{isKu ? 'نەخشەی ڕێگا' : 'Roadmap'}</span>
+                    <span>→</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

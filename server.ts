@@ -143,7 +143,7 @@ app.get('/api/export/csv', (req, res) => {
     const products = getProducts();
     const dateStr = new Date().toISOString().split('T')[0];
     const headers = [
-      'ID', 'Title_KU', 'Title_EN', 'Category', 'Price_USD', 'Is_Free',
+      'ID', 'Title_KU', 'Title_AR', 'Title_EN', 'Category', 'Price_USD', 'Is_Free',
       'FileType', 'FileSize', 'Progress_Percent', 'Target_Deadline',
       'Project_Status', 'Holding_Client', 'Milestones_Completed', 'Milestones_Total',
       'Download_URL', 'Purchase_URL', 'Demo_URL', 'Rating', 'Reviews_Count',
@@ -153,6 +153,7 @@ app.get('/api/export/csv', (req, res) => {
     const rows = products.map((p: any) => [
       escapeCSV(p.id),
       escapeCSV(p.titleKu),
+      escapeCSV(p.titleAr ?? ''),
       escapeCSV(p.titleEn),
       escapeCSV(p.category),
       escapeCSV(p.price),
